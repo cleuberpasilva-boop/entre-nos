@@ -1,9 +1,16 @@
 [
   {
-    "titulo": "Manhã — Laudes",
+    "titulo": "Laudes da Manhã",
     "data": "2026-06-10",
     "horario": "05:30",
-    "duracao": "4 min 20 seg",
-    "arquivo": "2026-06-10_manha.m4a"
+    "duracao": "",
+    "arquivo": "WhatsApp Audio 2026-06-10 at 22.44.22.mp4"
+  },
+  {
+    "titulo": "Completas — Oração da Noite",
+    "data": "2026-06-10",
+    "horario": "22:44",
+    "duracao": "",
+    "arquivo": "WhatsApp Audio 2026-06-11 at 06.18.57.mp4"
   }
 ]
