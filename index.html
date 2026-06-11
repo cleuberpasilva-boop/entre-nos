@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Entre Nós"/>
+<meta name="theme-color" content="#0d1117"/>
+<title>Entre Nós</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --ouro: #c9a84c;
+    --ouro-claro: #e8d9b5;
+    --ouro-escuro: #8a6e2a;
+    --fundo: #0d1117;
+    --fundo-card: #111827;
+    --fundo-card-antigo: #0f1420;
+    --borda: #1e2a42;
+    --borda-fraca: #161e30;
+    --texto-muted: #4a5568;
+    --texto-arquivo: #8a9bbf;
+    --separador: #3d4560;
+  }
+
+  html, body {
+    background: var(--fundo);
+    color: var(--ouro-claro);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .header-foto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    filter: brightness(0.38) saturate(0.75);
+  }
+
+  .header-gradiente {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, var(--fundo));
+  }
+
+  .header-conteudo {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 12px;
+  }
+
+  .icone-aliancas {
+    margin-bottom: 12px;
+    opacity: 0.92;
+  }
+
+  .titulo {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #f0e6c8;
+    letter-spacing: 0.08em;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.9);
+  }
+
+  .subtitulo {
+    font-size: 10px;
+    color: #b8a070;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    margin-top: 6px;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+  }
+
+  /* CONTEÚDO */
+  .conteudo {
+    padding: 0 16px;
+    padding-bottom: 100px;
+  }
+
+  /* TELAS */
+  .tela { display: none; }
+  .tela.ativa { display: block; }
+
+  /* SEPARADOR DE DATA */
+  .separador-data {
+    font-size: 10px;
+    color: var(--separador);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 20px 0 12px;
+  }
+
+  /* CARD DE ORAÇÃO */
+  .card-oracao {
+    background: var(--fundo-card);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 0.5px solid var(--borda);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    -webkit-user-select: none;
+  }
+
+  .card-oracao:active { transform: scale(0.98); }
+  .card-oracao.tocando { border-color: var(--ouro); }
+
+  .card-oracao.antigo {
+    background: var(--fundo-card-antigo);
+    border-color: var(--borda-fraca);
+    opacity: 0.72;
+  }
+
+  .card-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .card-titulo {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 15px;
+    color: var(--ouro-claro);
+    line-height: 1.3;
+  }
+
+  .card-antigo .card-titulo { color: var(--texto-arquivo); }
+
+  .card-meta {
+    font-size: 11px;
+    color: var(--texto-muted);
+    margin-top: 3px;
+  }
+
+  .btn-play {
+    background: #1a2540;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-play:active { background: #243050; }
+  .card-oracao.tocando .btn-play { background: var(--ouro-escuro); }
+
+  .btn-play svg { width: 14px; height: 14px; fill: var(--ouro); }
+  .btn-play.pausando svg { fill: #fff; }
+
+  .card-antigo .btn-play { background: #141b2e; }
+  .card-antigo .btn-play svg { fill: #4a5978; }
+
+  /* BARRA DE PROGRESSO */
+  .barra-fundo {
+    background: var(--fundo);
+    border-radius: 8px;
+    height: 3px;
+    overflow: hidden;
+  }
+
+  .barra-progresso {
+    height: 100%;
+    background: var(--ouro);
+    border-radius: 8px;
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+
+  /* PLAYER FIXO */
+  .player-fixo {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #111827;
+    border-top: 0.5px solid var(--borda);
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    display: none;
+    z-index: 100;
+  }
+
+  .player-fixo.visivel { display: block; }
+
+  .player-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .player-titulo {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    color: var(--ouro-claro);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-tempo {
+    font-size: 11px;
+    color: var(--texto-muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .player-controles {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .btn-player {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-player svg { width: 20px; height: 20px; fill: var(--ouro); }
+  .btn-player.secundario svg { fill: var(--texto-muted); width: 16px; height: 16px; }
+
+  .barra-player {
+    flex: 1;
+    height: 3px;
+    background: var(--fundo);
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .barra-player-progresso {
+    height: 100%;
+    background: var(--ouro);
+    border-radius: 4px;
+    width: 0%;
+    pointer-events: none;
+  }
+
+  /* NAVEGAÇÃO */
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--fundo);
+    border-top: 0.5px solid var(--borda);
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: space-around;
+    z-index: 200;
+    transition: transform 0.3s;
+  }
+
+  .nav.com-player { transform: translateY(-62px); }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: opacity 0.2s;
+    padding: 0 20px;
+    background: none;
+    border: none;
+  }
+
+  .nav-item.ativo { opacity: 1; }
+
+  .nav-item svg { width: 22px; height: 22px; fill: none; stroke: var(--ouro-claro); stroke-width: 1.5; }
+  .nav-item.ativo svg { stroke: var(--ouro); }
+
+  .nav-label {
+    font-size: 9px;
+    color: var(--separador);
+    letter-spacing: 0.1em;
+    text-transform: lowercase;
+  }
+
+  .nav-item.ativo .nav-label { color: var(--ouro); }
+
+  /* TELA ARQUIVO */
+  .arquivo-mes {
+    margin-top: 24px;
+  }
+
+  .arquivo-mes-titulo {
+    font-size: 11px;
+    color: var(--separador);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    border-bottom: 0.5px solid var(--borda-fraca);
+    padding-bottom: 8px;
+  }
+
+  /* TELA FAMÍLIA */
+  .familia-vazio {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-muted);
+  }
+
+  .familia-vazio svg {
+    width: 48px; height: 48px;
+    fill: none;
+    stroke: var(--borda);
+    stroke-width: 1;
+    margin-bottom: 16px;
+  }
+
+  .familia-vazio p {
+    font-family: Georgia, serif;
+    font-size: 15px;
+    color: var(--separador);
+    line-height: 1.6;
+  }
+
+  /* ESTADO VAZIO */
+  .estado-vazio {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--texto-muted);
+  }
+
+  .estado-vazio svg {
+    width: 40px; height: 40px;
+    fill: none; stroke: var(--borda); stroke-width: 1;
+    margin-bottom: 16px;
+  }
+
+  .estado-vazio p {
+    font-family: Georgia, serif;
+    font-size: 14px;
+    color: var(--separador);
+    line-height: 1.7;
+  }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    color: var(--separador);
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--borda);
+    border-top-color: var(--ouro);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* NOVO BADGE */
+  .badge-novo {
+    font-size: 9px;
+    background: #1a2540;
+    color: var(--ouro);
+    border: 0.5px solid var(--ouro-escuro);
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img class="header-foto" src="foto-casal.jpg" alt="Entre Nós" onerror="this.style.display='none'"/>
+  <div class="header-gradiente"></div>
+  <div class="header-conteudo">
+    <svg class="icone-aliancas" width="44" height="26" viewBox="0 0 44 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1.5" y="7" width="16" height="12" rx="6" stroke="#c9a84c" stroke-width="1.4" fill="none"/>
+      <rect x="26.5" y="7" width="16" height="12" rx="6" stroke="#c9a84c" stroke-width="1.4" fill="none"/>
+      <path d="M17.5 13 C19 13 20 13 22 13 C24 13 25 13 26.5 13" stroke="#c9a84c" stroke-width="1.4"/>
+      <circle cx="17.5" cy="13" r="2" fill="#c9a84c"/>
+      <circle cx="26.5" cy="13" r="2" fill="#c9a84c"/>
+    </svg>
+    <div class="titulo">Entre Nós</div>
+    <div class="subtitulo">orações do dia</div>
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="conteudo">
+
+  <!-- TELA INÍCIO -->
+  <div id="tela-inicio" class="tela ativa">
+    <div id="lista-oracoes"><div class="loading"><div class="spinner"></div>carregando orações...</div></div>
+  </div>
+
+  <!-- TELA ARQUIVO -->
+  <div id="tela-arquivo" class="tela">
+    <div id="lista-arquivo"><div class="loading"><div class="spinner"></div>carregando arquivo...</div></div>
+  </div>
+
+  <!-- TELA FAMÍLIA -->
+  <div id="tela-familia" class="tela">
+    <div class="familia-vazio">
+      <svg viewBox="0 0 48 48"><circle cx="16" cy="14" r="7"/><circle cx="32" cy="14" r="7"/><path d="M2 40 C2 30 10 24 16 24"/><path d="M46 40 C46 30 38 24 32 24"/><path d="M16 40 C16 32 20 28 24 28 C28 28 32 32 32 40"/></svg>
+      <p>Em breve você poderá<br/>convidar os filhos<br/>para rezar juntos.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- PLAYER FIXO -->
+<div class="player-fixo" id="player-fixo">
+  <div class="player-info">
+    <div class="player-titulo" id="player-titulo-texto">—</div>
+    <div class="player-tempo" id="player-tempo-texto">0:00 / 0:00</div>
+  </div>
+  <div class="player-controles">
+    <button class="btn-player secundario" id="btn-anterior" onclick="anteriorFaixa()" aria-label="Anterior">
+      <svg viewBox="0 0 24 24"><path d="M19 20L9 12l10-8v16z"/><line x1="5" y1="4" x2="5" y2="20" stroke-width="2" stroke="currentColor" fill="none"/></svg>
+    </button>
+    <button class="btn-player" id="btn-play-principal" onclick="togglePlay()" aria-label="Play/Pause">
+      <svg id="icone-play" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
+    <button class="btn-player secundario" id="btn-proximo" onclick="proximaFaixa()" aria-label="Próxima">
+      <svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20" stroke-width="2" stroke="currentColor" fill="none"/></svg>
+    </button>
+    <div class="barra-player" id="barra-player" onclick="buscarPosicao(event)">
+      <div class="barra-player-progresso" id="barra-player-progresso"></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVEGAÇÃO -->
+<nav class="nav" id="nav-principal">
+  <button class="nav-item ativo" id="nav-inicio" onclick="irPara('inicio')" aria-label="Início">
+    <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/></svg>
+    <span class="nav-label">início</span>
+  </button>
+  <button class="nav-item" id="nav-arquivo" onclick="irPara('arquivo')" aria-label="Arquivo">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/></svg>
+    <span class="nav-label">arquivo</span>
+  </button>
+  <button class="nav-item" id="nav-familia" onclick="irPara('familia')" aria-label="Família">
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><circle cx="17" cy="9" r="3"/><path d="M1 21c0-4 3.6-7 8-7s8 3 8 7"/><path d="M17 14c2.5 0 5 1.8 5 5"/></svg>
+    <span class="nav-label">família</span>
+  </button>
+</nav>
+
+<audio id="audio-player" preload="none"></audio>
+
+<script>
+const GITHUB_USER = 'cleuberpasilva-boop';
+const GITHUB_REPO = 'entre-nos';
+const BRANCH = 'main';
+const BASE_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}`;
+const JSON_URL = `${BASE_URL}/audios.json`;
+
+let oracoes = [];
+let indiceAtual = -1;
+let tocando = false;
+const audio = document.getElementById('audio-player');
+
+// Formata segundos em mm:ss
+function formatarTempo(seg) {
+  if (isNaN(seg) || seg < 0) return '0:00';
+  const m = Math.floor(seg / 60);
+  const s = Math.floor(seg % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// Formata data dd/mm/aaaa
+function formatarData(str) {
+  const [a, m, d] = str.split('-');
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return `${d} ${meses[parseInt(m)-1]} ${a}`;
+}
+
+function ehHoje(str) {
+  const hoje = new Date();
+  const [a, m, d] = str.split('-');
+  return parseInt(d) === hoje.getDate() && parseInt(m) === (hoje.getMonth()+1) && parseInt(a) === hoje.getFullYear();
+}
+
+function ehOntem(str) {
+  const ontem = new Date(); ontem.setDate(ontem.getDate() - 1);
+  const [a, m, d] = str.split('-');
+  return parseInt(d) === ontem.getDate() && parseInt(m) === (ontem.getMonth()+1) && parseInt(a) === ontem.getFullYear();
+}
+
+function labelData(str) {
+  if (ehHoje(str)) return 'hoje · ' + formatarData(str);
+  if (ehOntem(str)) return 'ontem · ' + formatarData(str);
+  return formatarData(str);
+}
+
+async function carregarOracoes() {
+  try {
+    const r = await fetch(JSON_URL + '?t=' + Date.now());
+    if (!r.ok) throw new Error('não encontrado');
+    oracoes = await r.json();
+    oracoes.sort((a, b) => {
+      const cmp = b.data.localeCompare(a.data);
+      if (cmp !== 0) return cmp;
+      return b.horario.localeCompare(a.horario);
+    });
+    renderizarInicio();
+    renderizarArquivo();
+  } catch(e) {
+    document.getElementById('lista-oracoes').innerHTML = `
+      <div class="estado-vazio">
+        <svg viewBox="0 0 48 48"><path d="M24 8v20M24 36v2"/><circle cx="24" cy="24" r="20" stroke-width="1.2"/></svg>
+        <p>Nenhuma oração ainda.<br/>Grave e suba o primeiro áudio<br/>para começar.</p>
+      </div>`;
+    document.getElementById('lista-arquivo').innerHTML = '';
+  }
+}
+
+function criarCardHTML(o, idx, antigo) {
+  const classeAntigo = antigo ? 'antigo' : '';
+  const badgeNovo = ehHoje(o.data) && idx === 0 ? '<span class="badge-novo">nova</span>' : '';
+  return `
+    <div class="card-oracao ${classeAntigo}" id="card-${idx}" onclick="tocarOu(${idx})">
+      <div class="card-topo">
+        <div>
+          <div class="card-titulo">${o.titulo}${badgeNovo}</div>
+          <div class="card-meta">${o.horario} · ${o.duracao || '—'}</div>
+        </div>
+        <button class="btn-play" id="btn-${idx}" aria-label="Tocar ${o.titulo}">
+          <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+      </div>
+      <div class="barra-fundo"><div class="barra-progresso" id="prog-${idx}"></div></div>
+    </div>`;
+}
+
+function renderizarInicio() {
+  if (!oracoes.length) return;
+  let html = '';
+  let dataAtual = null;
+  oracoes.forEach((o, i) => {
+    const antigo = !ehHoje(o.data);
+    if (o.data !== dataAtual) {
+      dataAtual = o.data;
+      html += `<div class="separador-data">${labelData(o.data)}</div>`;
+    }
+    html += criarCardHTML(o, i, antigo);
+  });
+  document.getElementById('lista-oracoes').innerHTML = html;
+}
+
+function renderizarArquivo() {
+  if (!oracoes.length) {
+    document.getElementById('lista-arquivo').innerHTML = '';
+    return;
+  }
+  const porMes = {};
+  oracoes.forEach((o, i) => {
+    const [a, m] = o.data.split('-');
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const chave = `${meses[parseInt(m)-1]} ${a}`;
+    if (!porMes[chave]) porMes[chave] = [];
+    porMes[chave].push({...o, idx: i});
+  });
+  let html = '';
+  for (const [mes, itens] of Object.entries(porMes)) {
+    html += `<div class="arquivo-mes"><div class="arquivo-mes-titulo">${mes}</div>`;
+    itens.forEach(o => { html += criarCardHTML(o, o.idx, true); });
+    html += '</div>';
+  }
+  document.getElementById('lista-arquivo').innerHTML = html;
+}
+
+function tocarOu(idx) {
+  if (indiceAtual === idx && tocando) {
+    pausar();
+  } else {
+    tocar(idx);
+  }
+}
+
+function tocar(idx) {
+  const o = oracoes[idx];
+  if (!o) return;
+  // Reset card anterior
+  if (indiceAtual >= 0) {
+    const cardAnterior = document.getElementById(`card-${indiceAtual}`);
+    const btnAnterior = document.getElementById(`btn-${indiceAtual}`);
+    const progAnterior = document.getElementById(`prog-${indiceAtual}`);
+    if (cardAnterior) cardAnterior.classList.remove('tocando');
+    if (btnAnterior) btnAnterior.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
+    if (progAnterior) progAnterior.style.width = '0%';
+  }
+  indiceAtual = idx;
+  audio.src = `${BASE_URL}/audios/${o.arquivo}`;
+  audio.play();
+  tocando = true;
+  // Atualizar card
+  const card = document.getElementById(`card-${idx}`);
+  const btn = document.getElementById(`btn-${idx}`);
+  if (card) card.classList.add('tocando');
+  if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>';
+  // Atualizar player fixo
+  document.getElementById('player-titulo-texto').textContent = o.titulo;
+  document.getElementById('icone-play').outerHTML = '<svg id="icone-play" viewBox="0 0 24 24"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>';
+  document.getElementById('player-fixo').classList.add('visivel');
+  document.getElementById('nav-principal').classList.add('com-player');
+}
+
+function pausar() {
+  audio.pause();
+  tocando = false;
+  const btn = document.getElementById(`btn-${indiceAtual}`);
+  if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
+  document.getElementById('icone-play').outerHTML = '<svg id="icone-play" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
+}
+
+function togglePlay() {
+  if (tocando) pausar(); else { audio.play(); tocando = true; }
+}
+
+function proximaFaixa() {
+  if (indiceAtual < oracoes.length - 1) tocar(indiceAtual + 1);
+}
+
+function anteriorFaixa() {
+  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+  if (indiceAtual > 0) tocar(indiceAtual - 1);
+}
+
+function buscarPosicao(e) {
+  if (!audio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+}
+
+audio.addEventListener('timeupdate', () => {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration * 100).toFixed(1) + '%';
+  const progCard = document.getElementById(`prog-${indiceAtual}`);
+  if (progCard) progCard.style.width = pct;
+  document.getElementById('barra-player-progresso').style.width = pct;
+  document.getElementById('player-tempo-texto').textContent =
+    formatarTempo(audio.currentTime) + ' / ' + formatarTempo(audio.duration);
+});
+
+audio.addEventListener('ended', () => {
+  tocando = false;
+  const btn = document.getElementById(`btn-${indiceAtual}`);
+  if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
+  document.getElementById('icone-play').outerHTML = '<svg id="icone-play" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
+  if (indiceAtual < oracoes.length - 1) proximaFaixa();
+});
+
+function irPara(tela) {
+  ['inicio','arquivo','familia'].forEach(t => {
+    document.getElementById(`tela-${t}`).classList.toggle('ativa', t === tela);
+    document.getElementById(`nav-${t}`).classList.toggle('ativo', t === tela);
+  });
+}
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+carregarOracoes();
+</script>
+</body>
+</html>
